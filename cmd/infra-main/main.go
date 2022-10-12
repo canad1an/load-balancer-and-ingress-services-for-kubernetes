@@ -111,6 +111,7 @@ func InitializeAKOInfra() {
 	a.SetupSEGroup(transportZone)
 	avirest.SyncLSLRNetwork()
 	a.AnnotateSystemNamespace(lib.GetClusterID(), utils.CloudName)
+	go avirest.Run(stopCh)
 	c.AddNetworkInfoEventHandler(stopCh)
 	c.AddNamespaceEventHandler(stopCh)
 

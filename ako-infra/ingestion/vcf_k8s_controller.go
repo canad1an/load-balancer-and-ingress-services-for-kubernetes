@@ -237,15 +237,15 @@ func (c *VCFK8sController) AddNetworkInfoEventHandler(stopCh <-chan struct{}) {
 	networkInfoHandler := cache.ResourceEventHandlerFuncs{
 		AddFunc: func(obj interface{}) {
 			utils.AviLog.Infof("NCP Network Info ADD Event")
-			avirest.AddSegment(obj)
+			avirest.AddSegmentOpToQueue(obj)
 		},
 		UpdateFunc: func(old, obj interface{}) {
 			utils.AviLog.Infof("NCP Network Info Update Event")
-			avirest.AddSegment(obj)
+			avirest.AddSegmentOpToQueue(obj)
 		},
 		DeleteFunc: func(obj interface{}) {
 			utils.AviLog.Infof("NCP Network Info Delete Event")
-			avirest.DeleteSegment(obj)
+			avirest.DeleteSegmentOpToQueue(obj)
 		},
 	}
 	c.dynamicInformers.VCFNetworkInfoInformer.Informer().AddEventHandler(networkInfoHandler)

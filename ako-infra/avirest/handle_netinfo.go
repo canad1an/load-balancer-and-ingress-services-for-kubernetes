@@ -38,6 +38,13 @@ var CloudCache *models.Cloud
 var NetCache *models.Network
 var IPAMCache *models.IPAMDNSProviderProfile
 
+type cloudRestOp struct {
+	op  string
+	obj interface{}
+}
+
+var CloudRestOpQueue = make(chan cloudRestOp, 10000)
+
 // SyncLSLRNetwork fetches all networkinfo CR objects, compares them with the data network configured in the cloud,
 // and updates the cloud if any LS-LR data is missing. It also creates or updates the VCF network with the CIDRs
 // Provided in the Networkinfo objects.
@@ -655,4 +662,35 @@ func checkAndRetry(key string, err error) bool {
 		}
 	}
 	return false
+}
+
+func AddSegmentOpToQueue(obj interface{}) {
+	c := cloudRestOp{
+		op:  "ADD",
+		obj: obj,
+	}
+	CloudRestOpQueue <- c
+}
+
+func DeleteSegmentOpToQueue(obj interface{}) {
+	c := cloudRestOp{
+		op:  "DELETE",
+		obj: obj,
+	}
+	CloudRestOpQueue <- c
+}
+
+func Run(stopch <-chan struct{}) {
+	for {
+		select {
+		case req := <-CloudRestOpQueue:
+			if req.op == "ADD" {
+				AddSegment(req.obj)
+			} else if req.op == "DELETE" {
+				DeleteSegment(req.obj)
+			}
+		case <-stopch:
+			return
+		}
+	}
 }
